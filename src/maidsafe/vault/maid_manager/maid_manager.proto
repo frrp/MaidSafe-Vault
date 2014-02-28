@@ -28,11 +28,12 @@ message MaidManagerKeyValuePair {
   required bytes value = 2;
 }
 
+message PmidTotal {
+  required bytes serialised_pmid_registration = 1;
+  required bytes serialised_pmid_metadata = 2;  // this is a serialised PmidManagerMetadata
+}
+
 message MaidManagerMetadata {
-  message PmidTotal {
-    required bytes serialised_pmid_registration = 1;
-    required bytes serialised_pmid_metadata = 2;  // this is a serialised PmidManagerMetadata
-  }
   repeated PmidTotal pmid_totals = 1;
   required int64 total_put_data = 2;
 }

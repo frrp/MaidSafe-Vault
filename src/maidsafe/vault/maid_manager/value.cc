@@ -75,6 +75,13 @@ void MaidManagerValue::Put(int32_t cost) {
   total_cost_ += cost;
 }
 
+void MaidManagerValue::PutAccountTransfer(const MaidManagerValue& value) {
+  GLOG() << "MaidManager account transfer count " << value.count()
+         << " total cost " << value.total_cost();
+  count_ = value.count();
+  total_cost_ = value.total_cost();
+}
+
 int32_t MaidManagerValue::Delete() {
   if (count_ < 0 || total_cost_ < 0)
     BOOST_THROW_EXCEPTION(MakeError(CommonErrors::unknown));

@@ -57,6 +57,9 @@ struct PmidTotals {
   PmidTotals(PmidTotals&& other);
   PmidTotals& operator=(PmidTotals other);
 
+  std::string Serialise() const;
+  void ParseFromString(const std::string& serialised_pmid_total);
+
   std::string serialised_pmid_registration;
   PmidManagerMetadata pmid_metadata;
 };

@@ -41,6 +41,7 @@ class MaidManagerValue {
   int32_t Delete();
   int32_t count() const { return count_; }
   int64_t total_cost() const { return total_cost_; }
+  void PutAccountTransfer(const MaidManagerValue& value);
 
   friend void swap(MaidManagerValue& lhs, MaidManagerValue& rhs);
 #ifdef MAIDSAFE_APPLE  // BEFORE_RELEASE This copy constructor definition is to allow building

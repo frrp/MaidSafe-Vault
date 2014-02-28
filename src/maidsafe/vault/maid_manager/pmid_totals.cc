@@ -16,6 +16,7 @@
     See the Licences for the specific language governing permissions and limitations relating to
     use of the MaidSafe Software.                                                                 */
 
+#include "maidsafe/vault/maid_manager/maid_manager.pb.h"
 #include "maidsafe/vault/maid_manager/pmid_totals.h"
 
 #include <string>
@@ -46,6 +47,20 @@ PmidTotals::PmidTotals(PmidTotals&& other)
 PmidTotals& PmidTotals::operator=(PmidTotals other) {
   swap(*this, other);
   return *this;
+}
+
+std::string PmidTotals::Serialise() const {
+  protobuf::PmidTotal pmid_total_proto;
+  pmid_total_proto.set_serialised_pmid_registration(serialised_pmid_registration);
+  pmid_total_proto.set_serialised_pmid_metadata(pmid_metadata.Serialise());
+  return pmid_total_proto.SerializeAsString();
+}
+
+void PmidTotals::ParseFromString(const std::string& serialised_pmid_total) {
+  protobuf::PmidTotal pmid_total_proto;
+  pmid_total_proto.ParseFromString(serialised_pmid_total);
+  serialised_pmid_registration = pmid_total_proto.serialised_pmid_registration();
+  pmid_metadata = PmidManagerMetadata(pmid_total_proto.serialised_pmid_metadata());
 }
 
 bool operator==(const PmidTotals& lhs, const PmidTotals& rhs) {

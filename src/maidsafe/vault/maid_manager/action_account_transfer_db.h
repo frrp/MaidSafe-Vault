@@ -24,18 +24,18 @@
 
 #include "maidsafe/nfs/types.h"
 #include "maidsafe/vault/config.h"
+#include "maidsafe/vault/maid_manager/maid_manager.h"
 
 namespace maidsafe {
 
 namespace vault {
 
-class MaidManagerMetadata;
 class MaidManagerValue;
 
 struct ActionMaidManagerAccountTransferDb {
-  explicit ActionMaidManagerAccountTransferDb(const MaidManagerValue& value);
+  explicit ActionMaidManagerAccountTransferDb(MaidManagerValue& value);
   ActionMaidManagerAccountTransferDb(const ActionMaidManagerAccountTransferDb& other);
-  ActionMaidManagerAccountTransferDb(ActionMaidManagerAccountTransferDb&& other);
+
   detail::DbAction operator()(MaidManagerMetadata& metadata,
                               std::unique_ptr<MaidManagerValue>& value) const;
 
@@ -45,12 +45,6 @@ struct ActionMaidManagerAccountTransferDb {
   ActionMaidManagerAccountTransferDb();
   ActionMaidManagerAccountTransferDb& operator=(ActionMaidManagerAccountTransferDb other);
 };
-
-bool operator==(const ActionMaidManagerAccountTransferDb& lhs,
-                const ActionMaidManagerAccountTransferDb& rhs);
-
-bool operator!=(const ActionMaidManagerAccountTransferDb& lhs,
-                const ActionMaidManagerAccountTransferDb& rhs);
 
 }  // namespace vault
 

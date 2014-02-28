@@ -259,6 +259,11 @@ class MaidManagerService {
       const typename MessageType::Sender& sender,
       const typename MessageType::Receiver& receiver);
 
+  bool DoCreateMaidAccount(const MaidManager::GroupName& group_name);
+
+  void DoUpdatePmidHealth(const MaidManager::GroupName& group_name,
+      const ActionMaidManagerUpdatePmidHealth& update_pmid_metadata_action);
+
   friend class detail::MaidManagerPutVisitor<MaidManagerService>;
   friend class detail::MaidManagerPutResponseVisitor<MaidManagerService>;
   friend class detail::MaidManagerPutResponseFailureVisitor<MaidManagerService>;

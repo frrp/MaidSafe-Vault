@@ -58,6 +58,7 @@ class MaidManagerMetadata {
   void RegisterPmid(const nfs_vault::PmidRegistration& pmid_registration);
   void UnregisterPmid(const PmidName& pmid_name);
   void UpdatePmidTotals(const PmidManagerMetadata& pmid_metadata);
+  const std::vector<PmidTotals>& pmid_totals() const { return pmid_totals_; }
 
   friend void swap(MaidManagerMetadata& lhs, MaidManagerMetadata& rhs);
   friend bool operator==(const MaidManagerMetadata& lhs, const MaidManagerMetadata& rhs);
