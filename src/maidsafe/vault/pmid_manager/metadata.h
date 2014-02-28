@@ -46,6 +46,7 @@ struct PmidManagerMetadata {
   void HandleFailure(int32_t size);
   void SetAvailableSize(const int64_t& available_size);
   std::string Serialise() const;
+  std::string SerialiseStaticOnly() const;
   detail::GroupDbMetaDataStatus GroupStatus();
 
   PmidName pmid_name;

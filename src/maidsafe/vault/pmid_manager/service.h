@@ -140,6 +140,8 @@ class PmidManagerService {
   void DoHandleHealthResponse(const PmidName& pmid_node,
       const MaidName& maid_node, const PmidManagerMetadata& pmid_health, nfs::MessageId message_id);
 
+  void DoActionPut(const PmidManager::Key& key, const ActionPmidManagerPut& action);
+
   void TransferAccount(const NodeId& dest,
                        const std::vector<GroupDb<PmidManager>::Contents>& accounts);
 

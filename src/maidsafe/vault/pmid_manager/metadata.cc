@@ -130,6 +130,17 @@ std::string PmidManagerMetadata::Serialise() const {
   return proto_metadata.SerializeAsString();
 }
 
+std::string PmidManagerMetadata::SerialiseStaticOnly() const {
+  protobuf::PmidManagerMetadata proto_metadata;
+  proto_metadata.set_pmid_name(pmid_name->string());
+  proto_metadata.set_stored_count(0);
+  proto_metadata.set_stored_total_size(0);
+  proto_metadata.set_lost_count(lost_count);
+  proto_metadata.set_lost_total_size(lost_total_size);
+  proto_metadata.set_claimed_available_size(claimed_available_size);
+  return proto_metadata.SerializeAsString();
+}
+
 bool operator==(const PmidManagerMetadata& lhs, const PmidManagerMetadata& rhs) {
   return lhs.pmid_name == rhs.pmid_name && lhs.stored_count == rhs.stored_count &&
          lhs.stored_total_size == rhs.stored_total_size && lhs.lost_count == rhs.lost_count &&

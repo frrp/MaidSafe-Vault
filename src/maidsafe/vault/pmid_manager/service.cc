@@ -67,14 +67,7 @@ void PmidManagerService::HandleSyncedPut(
   // from different DM. This will trigger two different sync_put actions and will eventually
   // got two resolved action, and committing same entry to group_db.
   // BEFORE_RELEASE check whether a failure response shall be sent instead
-  try {
-    group_db_.Commit(synced_action->key, synced_action->action);
-  } catch (const maidsafe_error& error) {
-    if (error.code().value() == static_cast<int>(VaultErrors::data_already_exists))
-      LOG(kWarning) << "Possibly different DM chose same pmid_node for the same chunk";
-    else
-      throw;
-  }
+  DoActionPut(synced_action->key, synced_action->action);
   auto data_name(GetDataNameVariant(synced_action->key.type, synced_action->key.name));
   SendPutResponse(data_name, synced_action->key.group_name(),
                   synced_action->action.kSize,
@@ -543,7 +536,7 @@ void PmidManagerService::TransferAccount(const NodeId& dest,
     GLOG() << "PmidManager transfer account " << HexSubstr(account.group_name->string())
            << " to " << DebugId(dest);
     std::vector<std::string> actions;
-    actions.push_back(account.metadata.Serialise());
+    actions.push_back(account.metadata.SerialiseStaticOnly());
     LOG(kVerbose) << "PmidManagerService::TransferAccount metadata serialised";
     for (auto& kv : account.kv_pairs) {
       protobuf::PmidManagerKeyValuePair kv_msg;
@@ -603,7 +596,23 @@ void PmidManagerService::HandleAccountTransfer(
       LOG(kError) << "HandleAccountTransfer can't parse the action";
     }
   }
-  group_db_.HandleTransfer(content);
+  group_db_.AddGroup(content.group_name, content.metadata);
+  for (auto& kv : content.kv_pairs) {
+    ActionPmidManagerPut action_put(kv.second.size(), nfs::MessageId(0));
+    DoActionPut(kv.first, action_put);
+  }
+}
+
+void PmidManagerService::DoActionPut(const PmidManager::Key& key,
+                                     const ActionPmidManagerPut& action) {
+  try {
+    group_db_.Commit(key, action);
+  } catch (const maidsafe_error& error) {
+    if (error.code() == make_error_code(VaultErrors::account_already_exists))
+      LOG(kWarning) << "Possibly different DM chose same pmid_node for the same chunk";
+    else
+      throw;
+  }
 }
 
 // void PmidManagerService::TransferAccount(const PmidName& account_name, const NodeId& new_node) {
