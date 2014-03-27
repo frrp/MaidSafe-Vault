@@ -361,6 +361,8 @@ void PmidNodeService::HandleIntegrityCheck(const typename Data::Name& data_name,
     // This case should be least frequent.
     LOG(kError) << "Failed to do integrity check for data : " << DebugId(data_name.value) << " , "
                 << error.what();
+  } catch (...) {
+    LOG(kError) << "unknow error";
   }
 }
 

@@ -583,9 +583,7 @@ void PmidManagerService::HandleAccountTransfer(
       if (kv_msg.ParseFromString(action)) {
         LOG(kVerbose) << "HandleAccountTransfer handle key_value pair";
         PmidManager::Key key(kv_msg.key());
-        LOG(kVerbose) << "HandleAccountTransfer key parsed";
         PmidManagerValue value(kv_msg.value());
-        LOG(kVerbose) << "HandleAccountTransfer vaule parsed";
         content.kv_pairs.push_back(std::make_pair(key, std::move(value)));
       } else {
         LOG(kVerbose) << "HandleAccountTransfer handle metadata";

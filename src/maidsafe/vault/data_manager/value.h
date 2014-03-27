@@ -40,6 +40,7 @@ class DataManagerValue {
   DataManagerValue(DataManagerValue&& other);
   DataManagerValue(const PmidName& pmid_name, int32_t size);
   std::string Serialise() const;
+  void Merge(const DataManagerValue& other);
 
   DataManagerValue& operator=(const DataManagerValue& other);
 

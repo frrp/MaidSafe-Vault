@@ -68,7 +68,8 @@ DataManagerService::DataManagerService(const passport::Pmid& pmid, routing::Rout
       sync_remove_pmids_(NodeId(pmid.name()->string())),
       sync_node_downs_(NodeId(pmid.name()->string())),
       sync_node_ups_(NodeId(pmid.name()->string())),
-      account_transfer_() {
+      account_transfer_(),
+      kv_transfer_() {
 }
 
 // ==================== Put implementation =========================================================
@@ -422,6 +423,61 @@ void DataManagerService::HandleMessage(
   }
 }
 
+template<>
+void DataManagerService::HandleMessage(
+    const AccountQueryFromDataManagerToDataManager& message,
+    const typename AccountQueryFromDataManagerToDataManager::Sender& sender,
+    const typename AccountQueryFromDataManagerToDataManager::Receiver& /*receiver*/) {
+  DataManager::Key key(message.contents->data);
+  LOG(kInfo) << "DataManager received account query from " << HexSubstr(sender.data.string())
+             << " regarding account " << HexSubstr(key.name.string());
+  try {
+    auto value(db_.Get(key));
+    protobuf::DataManagerKeyValuePair kv_msg;
+    kv_msg.set_key(key.Serialise());
+    kv_msg.set_value(value.Serialise());
+    nfs::MessageId message_id(static_cast<nfs::MessageId::value_type>(
+        HashStringToInt(key.name.string())));
+    dispatcher_.SendAccountQueryResponse(NodeId(sender.data.string()), message_id,
+                                         kv_msg.SerializeAsString());
+  } catch (...) {
+    // Ignore the query if there is any problem (the query will be relayed to requestor itself)
+  }
+}
+
+template<>
+void DataManagerService::HandleMessage(
+    const AccountQueryResponseFromDataManagerToDataManager& message,
+    const typename AccountQueryResponseFromDataManagerToDataManager::Sender& sender,
+    const typename AccountQueryResponseFromDataManagerToDataManager::Receiver& /*receiver*/) {
+  try {
+    protobuf::DataManagerKeyValuePair kv_msg;
+    if (kv_msg.ParseFromString(message.contents->data)) {
+      DataManager::Key key(kv_msg.key());
+      DataManagerValue value(kv_msg.value());
+      DataManager::UnresolvedKVTransfer unresolved_account_transfer(key, value);
+      auto resolved_account_query(kv_transfer_.AddUnresolvedAction(
+          unresolved_account_transfer, sender,
+          AccountTransfer<DataManager::UnresolvedKVTransfer>::AddRequestChecker(
+              routing::Parameters::group_size / 2)));
+      if (resolved_account_query) {
+        LOG(kInfo) << "AccountQueryResponse handle account query response";
+        this->HandleAccountQueryResponse(std::move(resolved_account_query));
+      }
+    }
+  } catch(...) {
+    LOG(kError) << "Handle AccountQueryResponse can't parse the response";
+  }
+}
+
+void DataManagerService::HandleAccountQueryResponse(
+    std::unique_ptr<DataManager::UnresolvedKVTransfer>&& resolved_account_query) {
+  std::vector<std::pair<DataManager::Key, DataManager::Value>> kv_pairs;
+  kv_pairs.push_back(std::make_pair(resolved_account_query->key,
+                                    std::move(resolved_account_query->value)));
+  db_.HandleTransfer(kv_pairs);
+}
+
 void DataManagerService::HandleAccountTransfer(
     std::unique_ptr<DataManager::UnresolvedAccountTransfer>&& resolved_action) {
   std::vector<std::pair<DataManager::Key, DataManager::Value>> kv_pairs;
@@ -443,6 +499,20 @@ void DataManagerService::HandleAccountTransfer(
     }
   }
   db_.HandleTransfer(kv_pairs);
+  for (auto& action : resolved_action->conflict_actions) {
+    try {
+      protobuf::DataManagerKeyValuePair kv_msg;
+      if (kv_msg.ParseFromString(action)) {
+        LOG(kVerbose) << "HandleAccountTransfer handle confliced key_value pair";
+        DataManager::Key key(kv_msg.key());
+        nfs::MessageId message_id(static_cast<nfs::MessageId::value_type>(
+            HashStringToInt(key.name.string())));
+        dispatcher_.SendAccountQuery(message_id, key.Serialise());
+      }
+    } catch(...) {
+      LOG(kError) << "HandleAccountTransfer can't parse the action";
+    }
+  }
 }
 
 

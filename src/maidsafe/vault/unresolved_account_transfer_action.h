@@ -54,7 +54,7 @@ struct UnresolvedAccountTransferAction {
 
   Key key;
   nfs::MessageId id;
-  std::vector<Action> actions;
+  std::vector<Action> actions, conflict_actions;
 
 //   UnresolvedAccountTransferAction& operator=(UnresolvedAction other);
 };
@@ -62,12 +62,12 @@ struct UnresolvedAccountTransferAction {
 template <typename Key, typename Action>
 UnresolvedAccountTransferAction<Key, Action>::UnresolvedAccountTransferAction(
     const Key& key_in, const nfs::MessageId& id_in, const std::vector<Action>& actions_in)
-  : key(key_in), id(id_in), actions(actions_in) {}
+  : key(key_in), id(id_in), actions(actions_in), conflict_actions() {}
 
 template <typename Key, typename Action>
 UnresolvedAccountTransferAction<Key, Action>::UnresolvedAccountTransferAction(
       const std::string& serialised_copy)
-    : key(), id(), actions() {
+    : key(), id(), actions(), conflict_actions() {
   protobuf::UnresolvedAccountTransferAction proto_unresolved_action;
   proto_unresolved_action.ParseFromString(serialised_copy);
   key = Key(Identity(proto_unresolved_action.serialised_key()));
@@ -86,6 +86,16 @@ void UnresolvedAccountTransferAction<Key, Action>::Merge(
   std::set_intersection(actions.begin(), actions.end(),
                         other.actions.begin(), other.actions.end(),
                         std::back_inserter(merged));
+  std::vector<Action> un_merged;
+  std::set_symmetric_difference(actions.begin(), actions.end(),
+                                other.actions.begin(), other.actions.end(),
+                                std::back_inserter(un_merged));
+  std::vector<Action> confliced;
+  std::set_symmetric_difference(conflict_actions.begin(), conflict_actions.end(),
+                                un_merged.begin(), un_merged.end(),
+                                std::back_inserter(confliced));
+  conflict_actions.clear();
+  std::copy(confliced.begin(), confliced.end(), std::back_inserter(conflict_actions));
   actions.clear();
   std::copy(merged.begin(), merged.end(), std::back_inserter(actions));
   LOG(kVerbose) << "UnresolvedAccountTransferAction<Key, Action>::Merge after having "

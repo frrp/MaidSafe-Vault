@@ -84,7 +84,7 @@ class GroupDb {
   std::unique_ptr<Value> Commit(const Key& key,
       std::function<detail::DbAction(Metadata& metadata, std::unique_ptr<Value>& value)> functor);
   TransferInfo GetTransferInfo(std::shared_ptr<routing::MatrixChange> matrix_change);
-  void HandleTransfer(const Contents& content);
+//   void HandleTransfer(const Contents& content);
 
   // returns metadata if group_name exists in db
   Metadata GetMetadata(const GroupName& group_name);
@@ -106,7 +106,7 @@ class GroupDb {
   void DeleteGroupEntries(const GroupName& group_name);
   void DeleteGroupEntries(typename GroupMap::iterator itr);
   Contents GetContents(typename GroupMap::iterator it);
-  void ApplyTransfer(const Contents& /*contents*/);
+//   void ApplyTransfer(const Contents& contents);
   Value Get(const Key& key, const GroupId& group_id);
   void Put(const KvPair& key_value_pair, const GroupId& group_id);
   void Delete(const Key& key, const GroupId& group_id);
@@ -312,24 +312,24 @@ typename GroupDb<Persona>::TransferInfo GroupDb<Persona>::GetTransferInfo(
   return transfer_info;
 }
 
-// FIXME (Prakash)
-template <typename Persona>
-void GroupDb<Persona>::HandleTransfer(const Contents& content) {
-  std::lock_guard<std::mutex> lock(mutex_);
-  ApplyTransfer(content);
-}
-
-// Ignores values which are already in db ?
-// Need discussion related to pmid account creation case. Pmid account will be created on
-// put action. This means a valid account transfer will be ignored.
-template <typename Persona>
-void GroupDb<Persona>::ApplyTransfer(const Contents& contents) {
-  // BEFORE_RELEASE what if metadata can't got resolved ? i.e. metadata is empty
-  //                create an empty account only for group_name?
-  auto itr = AddGroupToMap(contents.group_name, contents.metadata);
-  for (const auto& kv_pair : contents.kv_pairs)
-    Put(kv_pair, itr->second.first);
-}
+// // FIXME (Prakash)
+// template <typename Persona>
+// void GroupDb<Persona>::HandleTransfer(const Contents& content) {
+//   std::lock_guard<std::mutex> lock(mutex_);
+//   ApplyTransfer(content);
+// }
+// 
+// // Ignores values which are already in db ?
+// // Need discussion related to pmid account creation case. Pmid account will be created on
+// // put action. This means a valid account transfer will be ignored.
+// template <typename Persona>
+// void GroupDb<Persona>::ApplyTransfer(const Contents& contents) {
+//   // BEFORE_RELEASE what if metadata can't got resolved ? i.e. metadata is empty
+//   //                create an empty account only for group_name?
+//   auto itr = AddGroupToMap(contents.group_name, contents.metadata);
+//   for (const auto& kv_pair : contents.kv_pairs)
+//     Put(kv_pair, itr->second.first);
+// }
 
 template <typename Persona>
 typename GroupDb<Persona>::Metadata GroupDb<Persona>::GetMetadata(const GroupName& group_name) {

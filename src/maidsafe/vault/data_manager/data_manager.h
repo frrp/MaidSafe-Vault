@@ -26,6 +26,7 @@
 #include "maidsafe/vault/key.h"
 #include "maidsafe/vault/unresolved_action.h"
 #include "maidsafe/vault/unresolved_account_transfer_action.h"
+#include "maidsafe/vault/unresolved_kv_transfer.h"
 #include "maidsafe/vault/data_manager/value.h"
 #include "maidsafe/vault/data_manager/action_add_pmid.h"
 #include "maidsafe/vault/data_manager/action_delete.h"
@@ -60,6 +61,7 @@ struct PersonaTypes<Persona::kDataManager> {
   typedef vault::UnresolvedAction<Key, vault::ActionDataManagerNodeDown> UnresolvedNodeDown;
   typedef vault::UnresolvedAccountTransferAction<passport::PublicPmid::Name, std::string>
       UnresolvedAccountTransfer;
+  typedef vault::UnresolvedKVTransfer<Key, Value> UnresolvedKVTransfer;
 };
 
 }  // namespace nfs

@@ -57,6 +57,25 @@ DataManagerValue& DataManagerValue::operator=(const DataManagerValue& other) {
   return *this;
 }
 
+void DataManagerValue::Merge(const DataManagerValue& other) {
+  subscribers_ = std::min(subscribers_, other.subscribers_);
+  size_ = std::min(size_, other.size_);
+  std::set<PmidName> merged_online_pmids_;
+  std::set_intersection(online_pmids_.begin(), online_pmids_.end(),
+                        other.online_pmids_.begin(), other.online_pmids_.end(),
+                        std::back_inserter(merged_online_pmids_));
+  online_pmids_.clear();
+  std::copy(merged_online_pmids_.begin(), merged_online_pmids_.end(),
+            std::back_inserter(online_pmids_));
+  std::set<PmidName> merged_offline_pmids_;
+  std::set_intersection(offline_pmids_.begin(), offline_pmids_.end(),
+                        other.offline_pmids_.begin(), other.offline_pmids_.end(),
+                        std::back_inserter(merged_offline_pmids_));
+  offline_pmids_.clear();
+  std::copy(merged_offline_pmids_.begin(), merged_offline_pmids_.end(),
+            std::back_inserter(offline_pmids_));
+}
+
 DataManagerValue::DataManagerValue(const PmidName& pmid_name, int32_t size)
     : subscribers_(0), size_(size), online_pmids_(), offline_pmids_() {
   AddPmid(pmid_name);

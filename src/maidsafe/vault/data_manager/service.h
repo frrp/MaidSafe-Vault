@@ -198,6 +198,9 @@ class DataManagerService {
 
   void HandleAccountTransfer(
       std::unique_ptr<DataManager::UnresolvedAccountTransfer>&& resolved_action);
+
+  void HandleAccountQueryResponse(
+      std::unique_ptr<DataManager::UnresolvedKVTransfer>&& resolved_account_query);
   // =========================== General functions =================================================
   void HandleDataIntegrityResponse(const GetResponseContents& response, nfs::MessageId message_id);
 
@@ -263,6 +266,7 @@ class DataManagerService {
   Sync<DataManager::UnresolvedNodeDown> sync_node_downs_;
   Sync<DataManager::UnresolvedNodeUp> sync_node_ups_;
   AccountTransfer<DataManager::UnresolvedAccountTransfer> account_transfer_;
+  AccountTransfer<DataManager::UnresolvedKVTransfer> kv_transfer_;
 
  protected:
   std::mutex lock_guard;
@@ -356,6 +360,18 @@ void DataManagerService::HandleMessage(
     const AccountTransferFromDataManagerToDataManager& message,
     const typename AccountTransferFromDataManagerToDataManager::Sender& sender,
     const typename AccountTransferFromDataManagerToDataManager::Receiver& receiver);
+
+template<>
+void DataManagerService::HandleMessage(
+    const AccountQueryFromDataManagerToDataManager& message,
+    const typename AccountQueryFromDataManagerToDataManager::Sender& sender,
+    const typename AccountQueryFromDataManagerToDataManager::Receiver& receiver);
+
+template<>
+void DataManagerService::HandleMessage(
+    const AccountQueryResponseFromDataManagerToDataManager& message,
+    const typename AccountQueryResponseFromDataManagerToDataManager::Sender& sender,
+    const typename AccountQueryResponseFromDataManagerToDataManager::Receiver& receiver);
 
 template <>
 void DataManagerService::HandleMessage(

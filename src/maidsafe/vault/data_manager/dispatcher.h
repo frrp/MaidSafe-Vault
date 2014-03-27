@@ -106,6 +106,12 @@ class DataManagerDispatcher {
                            nfs::MessageId message_id,
                            const std::string& serialised_account);
 
+  void SendAccountQuery(nfs::MessageId message_id, const std::string& account_name);
+
+  void SendAccountQueryResponse(const NodeId& destination_peer,
+                                nfs::MessageId message_id,
+                                const std::string& serialised_account);
+
  private:
   DataManagerDispatcher();
   DataManagerDispatcher(const DataManagerDispatcher&);

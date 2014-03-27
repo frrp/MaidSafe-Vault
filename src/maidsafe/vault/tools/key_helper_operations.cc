@@ -351,7 +351,7 @@ void DataChunkStorer::TestStoreChunk(int chunk_index) {
   StoreOneChunk(chunk_list_[chunk_index]);
   LOG(kInfo) << "Sleeping for network handling storing ... "
              << HexSubstr(chunk_list_[chunk_index].name().value);
-  boost::this_thread::sleep_for(boost::chrono::seconds(3));
+  boost::this_thread::sleep_for(boost::chrono::seconds(5));
   if (!GetOneChunk(chunk_list_[chunk_index]))
     BOOST_THROW_EXCEPTION(MakeError(CommonErrors::invalid_parameter));
   std::cout << "Chunk "<< HexSubstr(chunk_list_[chunk_index].name().value)
