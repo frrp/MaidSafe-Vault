@@ -1013,8 +1013,7 @@ void MaidManagerService::TransferAccount(const NodeId& dest,
     for (auto& pmid_total : account.metadata.pmid_totals()) {
       actions.push_back(pmid_total.Serialise());
     }
-    nfs::MessageId message_id(static_cast<nfs::MessageId::value_type>(
-        HashStringToInt(account.group_name->string())));
+    nfs::MessageId message_id(HashStringToMessageId(account.group_name->string()));
     MaidManager::UnresolvedAccountTransfer account_transfer(
         account.group_name, message_id, actions);
     LOG(kVerbose) << "MaidManagerService::TransferAccount send account_transfer";

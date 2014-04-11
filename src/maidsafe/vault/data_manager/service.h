@@ -545,26 +545,7 @@ void DataManagerService::HandleGet(const typename Data::Name& data_name,
                                    nfs::MessageId message_id) {
   LOG(kVerbose) << "DataManagerService::HandleGet " << HexSubstr(data_name.value);
   // Get all pmid nodes that are online.
-<<<<<<< HEAD
   std::set<PmidName> online_pmids(GetOnlinePmids<Data>(data_name));
-=======
-  std::set<PmidName> online_pmids;
-  try {
-    auto value(db_.Get(DataManager::Key(data_name.value, Data::Tag::kValue)));
-    online_pmids = std::move(value.online_pmids());
-  } catch (const maidsafe_error& error) {
-    LOG(kWarning) << "Getting " << HexSubstr(data_name.value)
-                  << " causes a maidsafe_error " << boost::diagnostic_information(error);
-    if (error.code() != make_error_code(VaultErrors::no_such_account)) {
-      LOG(kError) << "db error";
-      throw error;  // For db errors
-    }
-    // TODO(Fraser#5#): 2013-10-03 - Request for non-existent data should possibly generate an alert
-    LOG(kWarning) << "Entry for " << HexSubstr(data_name.value) << " doesn't exist.";
-    return;
-  }
-
->>>>>>> next
   int expected_response_count(static_cast<int>(online_pmids.size()));
   // if there is no online_pmids in record, means :
   //   this DM doesn't have the record for the requested data
@@ -770,8 +751,7 @@ void DataManagerService::DoGetForNodeDownResponse(const PmidName& pmid_node,
     } while (pmid_name->string() == data_name.value.string() && already_picked);
 
     Data data(Data(data_name, typename Data::serialised_type(*contents.content)));
-    nfs::MessageId message_id(static_cast<nfs::MessageId::value_type>(
-        HashStringToInt(data_name.value.string())));
+    nfs::MessageId message_id(HashStringToMessageId(data_name.value.string()));
     GLOG() << "DataManager re-put chunk " << HexSubstr(contents.name.raw_name)
            << " to new pmid_node " << HexSubstr(pmid_name->string());
     dispatcher_.SendPutRequest(pmid_name, data, message_id);

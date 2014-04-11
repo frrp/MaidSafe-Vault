@@ -449,8 +449,7 @@ void DataManagerService::HandleMessage(
     protobuf::DataManagerKeyValuePair kv_msg;
     kv_msg.set_key(key.Serialise());
     kv_msg.set_value(value.Serialise());
-    nfs::MessageId message_id(static_cast<nfs::MessageId::value_type>(
-        HashStringToInt(key.name.string())));
+    nfs::MessageId message_id(HashStringToMessageId(key.name.string()));
     dispatcher_.SendAccountQueryResponse(NodeId(sender.data.string()), message_id,
                                          kv_msg.SerializeAsString());
   } catch (...) {
@@ -518,8 +517,7 @@ void DataManagerService::HandleAccountTransfer(
       if (kv_msg.ParseFromString(action)) {
         LOG(kVerbose) << "HandleAccountTransfer handle confliced key_value pair";
         DataManager::Key key(kv_msg.key());
-        nfs::MessageId message_id(static_cast<nfs::MessageId::value_type>(
-            HashStringToInt(key.name.string())));
+        nfs::MessageId message_id(HashStringToMessageId(key.name.string()));
         dispatcher_.SendAccountQuery(message_id, key.Serialise());
       }
     } catch(...) {
@@ -562,8 +560,7 @@ void DataManagerService::TransferAccount(const NodeId& dest,
     kv_msg.set_value(account.second.Serialise());
     actions.push_back(kv_msg.SerializeAsString());
   }
-  nfs::MessageId message_id(static_cast<nfs::MessageId::value_type>(
-      HashStringToInt(dest.string())));
+  nfs::MessageId message_id(HashStringToMessageId(dest.string()));
   DataManager::UnresolvedAccountTransfer account_transfer(
       passport::PublicPmid::Name(Identity(dest.string())), message_id, actions);
   LOG(kVerbose) << "DataManagerService::TransferAccount send account_transfer";

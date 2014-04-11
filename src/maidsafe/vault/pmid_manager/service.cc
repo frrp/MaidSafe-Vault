@@ -543,8 +543,7 @@ void PmidManagerService::TransferAccount(const NodeId& dest,
         kv_msg.set_value(kv.second.Serialise());
         actions.push_back(kv_msg.SerializeAsString());
     }
-    nfs::MessageId message_id(static_cast<nfs::MessageId::value_type>(
-        HashStringToInt(account.group_name->string())));
+    nfs::MessageId message_id(HashStringToMessageId(account.group_name->string()));
     PmidManager::UnresolvedAccountTransfer account_transfer(
         account.group_name, message_id, actions);
     LOG(kVerbose) << "PmidManagerService::TransferAccount send account_transfer";
