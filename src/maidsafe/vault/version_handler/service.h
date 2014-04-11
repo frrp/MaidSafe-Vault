@@ -31,7 +31,7 @@
 #include "maidsafe/common/types.h"
 #include "maidsafe/passport/types.h"
 #include "maidsafe/routing/routing_api.h"
-#include "maidsafe/data_types/structured_data_versions.h"
+#include "maidsafe/common/data_types/structured_data_versions.h"
 #include "maidsafe/nfs/types.h"
 #include "maidsafe/nfs/message_types.h"
 
@@ -54,6 +54,7 @@ namespace detail {
   template <typename SourcePersonaType> class VersionHandlerGetBranchVisitor;
   class VersionHandlerPutVisitor;
   class VersionHandlerDeleteBranchVisitor;
+  class VersionHandlerCreateVersionTreeVisitor;
 }
 
 namespace test {
@@ -81,6 +82,7 @@ class VersionHandlerService {
   template <typename SourcePersonaType> friend class detail::VersionHandlerGetBranchVisitor;
   friend class detail::VersionHandlerPutVisitor;
   friend class detail::VersionHandlerDeleteBranchVisitor;
+  friend class detail::VersionHandlerCreateVersionTreeVisitor;
   friend test::VersionHandlerServiceTest;
 
  private:
@@ -113,6 +115,11 @@ class VersionHandlerService {
                                    const VersionHandler::VersionName& branch_tip,
                                    const NodeId& sender);
 
+  void HandleCreateVersionTree(const VersionHandler::Key& key,
+                               const VersionHandler::VersionName& version,
+                               uint32_t max_versions, uint32_t max_branches,
+                               nfs::MessageId message_id);
+
   typedef boost::mpl::vector<> InitialType;
   typedef boost::mpl::insert_range<InitialType,
                                    boost::mpl::end<InitialType>::type,
@@ -132,8 +139,9 @@ class VersionHandlerService {
   Accumulator<Messages> accumulator_;
   Db<VersionHandler::Key, VersionHandler::Value> db_;
   const NodeId kThisNodeId_;
+  Sync<VersionHandler::UnresolvedCreateVersionTree> sync_create_version_tree_;
   Sync<VersionHandler::UnresolvedPutVersion> sync_put_versions_;
-  Sync<VersionHandler::UnresolvedDeleteBranchUntilFork> sync_delete_branche_until_forks_;
+  Sync<VersionHandler::UnresolvedDeleteBranchUntilFork> sync_delete_branch_until_fork_;
 };
 
 template <typename MessageType>
@@ -187,6 +195,12 @@ void VersionHandlerService::HandleMessage(
 
 template<>
 void VersionHandlerService::HandleMessage(
+    const CreateVersionTreeRequestFromMaidManagerToVersionHandler & message,
+    const typename CreateVersionTreeRequestFromMaidManagerToVersionHandler::Sender& sender,
+    const typename CreateVersionTreeRequestFromMaidManagerToVersionHandler::Receiver& receiver);
+
+template<>
+void VersionHandlerService::HandleMessage(
     const SynchroniseFromVersionHandlerToVersionHandler& message,
     const typename SynchroniseFromVersionHandlerToVersionHandler::Sender& sender,
     const typename SynchroniseFromVersionHandlerToVersionHandler::Receiver& receiver);
@@ -197,10 +211,12 @@ void VersionHandlerService::HandleGetVersions(const VersionHandler::Key& key,
                                               nfs::MessageId message_id) {
   try {
     auto value(std::move(db_.Get(key)));
+    LOG(kError) << "HandleGetVersions  msg id" << message_id << "Get from db passed";
     dispatcher_.SendGetVersionsResponse(key, value.Get(), requestor_type,
                                         maidsafe_error(CommonErrors::success), message_id);
   }
   catch (const maidsafe_error& error) {
+    LOG(kError) << "HandleGetVersions  msg id" << message_id << boost::diagnostic_information(error);
     dispatcher_.SendGetVersionsResponse(key, std::vector<StructuredDataVersions::VersionName>(),
                                         requestor_type, error, message_id);
   }
